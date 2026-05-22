@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: wings-of-world-backend
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: WINGS_OF_WORLD_BACKEND_GATEWAY_PORT
+        value: "8080"
+      - key: OPENCLAW_GATEWAY_PORT
+        value: "8080"
+      - key: WINGS_OF_WORLD_BACKEND_STATE_DIR
+        value: /data/.wings-of-world-backend
+      - key: OPENCLAW_STATE_DIR
+        value: /data/.wings-of-world-backend
+      - key: WINGS_OF_WORLD_BACKEND_CONFIG_PATH
+        value: /data/.wings-of-world-backend/wings-of-world.json
+      - key: OPENCLAW_WORKSPACE_DIR
+        value: /data/workspace
+      - key: WINGS_OF_WORLD_BACKEND_GATEWAY_TOKEN
+        generateValue: true
+      - key: OPENCLAW_GATEWAY_TOKEN
+        generateValue: true
+    disk:
+      name: wings-of-world-backend-data
+      mountPath: /data
+      sizeGB: 1

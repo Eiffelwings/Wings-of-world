@@ -1,0 +1,54 @@
+# Protect the ownership rules themselves.
+/.github/CODEOWNERS @steipete
+
+# WARNING: GitHub CODEOWNERS uses last-match-wins semantics.
+# If you add overlapping rules below the secops block, include @mechanical-wings/secops
+# on those entries too or you can silently remove required secops review.
+# Security-sensitive code, config, and docs require secops review.
+/SECURITY.md @mechanical-wings/secops
+/.github/dependabot.yml @mechanical-wings/secops
+/.github/codeql/ @mechanical-wings/secops
+/.github/workflows/codeql.yml @mechanical-wings/secops
+/src/security/ @mechanical-wings/secops
+/src/secrets/ @mechanical-wings/secops
+/src/config/*secret*.ts @mechanical-wings/secops
+/src/config/**/*secret*.ts @mechanical-wings/secops
+/src/gateway/*auth*.ts @mechanical-wings/secops
+/src/gateway/**/*auth*.ts @mechanical-wings/secops
+/src/gateway/*secret*.ts @mechanical-wings/secops
+/src/gateway/**/*secret*.ts @mechanical-wings/secops
+/src/gateway/security-path*.ts @mechanical-wings/secops
+/src/gateway/resolve-configured-secret-input-string*.ts @mechanical-wings/secops
+/src/gateway/protocol/**/*secret*.ts @mechanical-wings/secops
+/src/gateway/server-methods/secrets*.ts @mechanical-wings/secops
+/src/agents/*auth*.ts @mechanical-wings/secops
+/src/agents/**/*auth*.ts @mechanical-wings/secops
+/src/agents/auth-profiles*.ts @mechanical-wings/secops
+/src/agents/auth-health*.ts @mechanical-wings/secops
+/src/agents/auth-profiles/ @mechanical-wings/secops
+/src/agents/sandbox.ts @mechanical-wings/secops
+/src/agents/sandbox-*.ts @mechanical-wings/secops
+/src/agents/sandbox/ @mechanical-wings/secops
+/src/infra/secret-file*.ts @mechanical-wings/secops
+/src/cron/stagger.ts @mechanical-wings/secops
+/src/cron/service/jobs.ts @mechanical-wings/secops
+/docs/security/ @mechanical-wings/secops
+/docs/gateway/authentication.md @mechanical-wings/secops
+/docs/gateway/sandbox-vs-tool-policy-vs-elevated.md @mechanical-wings/secops
+/docs/gateway/sandboxing.md @mechanical-wings/secops
+/docs/gateway/secrets-plan-contract.md @mechanical-wings/secops
+/docs/gateway/secrets.md @mechanical-wings/secops
+/docs/gateway/security/ @mechanical-wings/secops
+/docs/cli/approvals.md @mechanical-wings/secops
+/docs/cli/sandbox.md @mechanical-wings/secops
+/docs/cli/security.md @mechanical-wings/secops
+/docs/cli/secrets.md @mechanical-wings/secops
+/docs/reference/secretref-credential-surface.md @mechanical-wings/secops
+/docs/reference/secretref-user-supplied-credentials-matrix.json @mechanical-wings/secops
+
+# Release workflow and its supporting release-path checks.
+/.github/workflows/mechanical-wings-npm-release.yml @mechanical-wings/mechanical-wings-release-managers
+/docs/reference/RELEASING.md @mechanical-wings/mechanical-wings-release-managers
+/scripts/mechanical-wings-npm-publish.sh @mechanical-wings/mechanical-wings-release-managers
+/scripts/mechanical-wings-npm-release-check.ts @mechanical-wings/mechanical-wings-release-managers
+/scripts/release-check.ts @mechanical-wings/mechanical-wings-release-managers

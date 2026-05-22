@@ -1,0 +1,40 @@
+{
+  "name": "@mechanical-wings/line",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 LINE channel plugin",
+  "type": "module",
+  "devDependencies": {
+    "mechanical-wings": "workspace:*"
+  },
+  "peerDependencies": {
+    "mechanical-wings": ">=2026.3.26"
+  },
+  "peerDependenciesMeta": {
+    "mechanical-wings": {
+      "optional": true
+    }
+  },
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "setupEntry": "./setup-entry.ts",
+    "channel": {
+      "id": "line",
+      "label": "LINE",
+      "selectionLabel": "LINE (Messaging API)",
+      "docsPath": "/channels/line",
+      "docsLabel": "line",
+      "blurb": "LINE Messaging API bot for Japan/Taiwan/Thailand markets.",
+      "order": 75,
+      "quickstartAllowFrom": true
+    },
+    "install": {
+      "npmSpec": "@mechanical-wings/line",
+      "localPath": "extensions/line",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2026.3.26"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+services:
+  wings-of-world-gateway:
+    image: ${WINGS_OF_WORLD_BACKEND_IMAGE:-wings-of-world-backend:local}
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      WINGS_OF_WORLD_BACKEND_GATEWAY_TOKEN: ${WINGS_OF_WORLD_BACKEND_GATEWAY_TOKEN:-}
+      WINGS_OF_WORLD_BACKEND_STATE_DIR: /home/node/.wings-of-world-backend
+      WINGS_OF_WORLD_BACKEND_CONFIG_PATH: /home/node/.wings-of-world-backend/wings-of-world.json
+      WINGS_OF_WORLD_BACKEND_ALLOW_INSECURE_PRIVATE_WS: ${WINGS_OF_WORLD_BACKEND_ALLOW_INSECURE_PRIVATE_WS:-}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      OPENCLAW_STATE_DIR: /home/node/.wings-of-world-backend
+      OPENCLAW_CONFIG_PATH: /home/node/.wings-of-world-backend/wings-of-world.json
+      OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-}
+      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
+      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
+      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
+      TZ: ${WINGS_OF_WORLD_BACKEND_TZ:-UTC}
+    volumes:
+      - ${WINGS_OF_WORLD_BACKEND_CONFIG_DIR:-./data/backend}:/home/node/.wings-of-world-backend
+      - ${WINGS_OF_WORLD_BACKEND_WORKSPACE_DIR:-./data/workspace}:/home/node/.wings-of-world-backend/workspace
+      ## Uncomment the lines below to enable sandbox isolation
+      ## (agents.defaults.sandbox). Requires Docker CLI in the image
+      ## (build with --build-arg OPENCLAW_INSTALL_DOCKER_CLI=1) or use
+      ## scripts/docker/setup.sh with OPENCLAW_SANDBOX=1 for automated setup.
+      ## Set DOCKER_GID to the host's docker group GID (run: stat -c '%g' /var/run/docker.sock).
+      # - /var/run/docker.sock:/var/run/docker.sock
+    # group_add:
+    #   - "${DOCKER_GID:-999}"
+    ports:
+      - "${WINGS_OF_WORLD_BACKEND_GATEWAY_PORT:-18789}:18789"
+      - "${WINGS_OF_WORLD_BACKEND_BRIDGE_PORT:-18790}:18790"
+    init: true
+    restart: unless-stopped
+    command:
+      [
+        "node",
+        "dist/index.js",
+        "gateway",
+        "--bind",
+        "${WINGS_OF_WORLD_BACKEND_GATEWAY_BIND:-lan}",
+        "--port",
+        "18789",
+      ]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:18789/healthz').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  wings-of-world-cli:
+    image: ${WINGS_OF_WORLD_BACKEND_IMAGE:-wings-of-world-backend:local}
+    network_mode: "service:wings-of-world-gateway"
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      WINGS_OF_WORLD_BACKEND_GATEWAY_TOKEN: ${WINGS_OF_WORLD_BACKEND_GATEWAY_TOKEN:-}
+      WINGS_OF_WORLD_BACKEND_STATE_DIR: /home/node/.wings-of-world-backend
+      WINGS_OF_WORLD_BACKEND_CONFIG_PATH: /home/node/.wings-of-world-backend/wings-of-world.json
+      WINGS_OF_WORLD_BACKEND_ALLOW_INSECURE_PRIVATE_WS: ${WINGS_OF_WORLD_BACKEND_ALLOW_INSECURE_PRIVATE_WS:-}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      OPENCLAW_STATE_DIR: /home/node/.wings-of-world-backend
+      OPENCLAW_CONFIG_PATH: /home/node/.wings-of-world-backend/wings-of-world.json
+      OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-}
+      BROWSER: echo
+      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
+      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
+      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
+      TZ: ${WINGS_OF_WORLD_BACKEND_TZ:-UTC}
+    volumes:
+      - ${WINGS_OF_WORLD_BACKEND_CONFIG_DIR:-./data/backend}:/home/node/.wings-of-world-backend
+      - ${WINGS_OF_WORLD_BACKEND_WORKSPACE_DIR:-./data/workspace}:/home/node/.wings-of-world-backend/workspace
+    stdin_open: true
+    tty: true
+    init: true
+    entrypoint: ["node", "dist/index.js"]
+    depends_on:
+      - wings-of-world-gateway

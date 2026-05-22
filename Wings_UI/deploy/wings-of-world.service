@@ -1,0 +1,42 @@
+﻿[Unit]
+Description=Wings Of World server
+Documentation=https://github.com/wings-of-world/wings-of-world
+After=network.target
+
+[Service]
+Type=simple
+User=wings-of-world
+Group=wings-of-world
+WorkingDirectory=/opt/wings-of-world
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+Environment=LOG_LEVEL=info
+Environment=WINGS_OF_WORLD_DATA_DIR=/var/lib/wings-of-world
+ExecStart=/usr/bin/node /opt/wings-of-world/dist/index.js
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=15
+
+# Hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/wings-of-world
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

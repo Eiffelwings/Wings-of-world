@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/hermes-bridge-plugin",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings Hermes bridge plugin",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

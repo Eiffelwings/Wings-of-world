@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mechanical-wings-config
+  labels:
+    app: mechanical-wings
+data:
+  mechanical-wings.json: |
+    {
+      "gateway": {
+        "mode": "local",
+        "bind": "loopback",
+        "port": 18789,
+        "auth": {
+          "mode": "token"
+        },
+        "controlUi": {
+          "enabled": true
+        }
+      },
+      "agents": {
+        "defaults": {
+          "workspace": "~/.mechanical-wings/workspace"
+        },
+        "list": [
+          {
+            "id": "default",
+            "name": "Wings🪽 Assistant",
+            "workspace": "~/.mechanical-wings/workspace"
+          }
+        ]
+      },
+      "cron": { "enabled": false }
+    }
+  AGENTS.md: |
+    # Wings🪽 Assistant
+
+    You are a helpful AI assistant running in Kubernetes.

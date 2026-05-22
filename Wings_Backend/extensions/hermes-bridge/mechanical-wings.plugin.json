@@ -1,0 +1,25 @@
+{
+  "id": "hermes-bridge",
+  "name": "Hermes Bridge",
+  "description": "Local bridge for reading and comparing D:\\hermes-agent-main capabilities.",
+  "contracts": {
+    "tools": ["hermes_capabilities", "hermes_gap_analysis"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "rootDir": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Hermes repository root. Defaults to D:\\hermes-agent-main."
+      }
+    }
+  },
+  "uiHints": {
+    "rootDir": {
+      "label": "Hermes Root Directory",
+      "help": "Local path to hermes-agent-main."
+    }
+  }
+}

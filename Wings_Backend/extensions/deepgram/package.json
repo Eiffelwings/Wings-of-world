@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/deepgram-provider",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 Deepgram media-understanding provider",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

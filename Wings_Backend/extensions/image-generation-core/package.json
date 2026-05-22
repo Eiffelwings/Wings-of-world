@@ -1,0 +1,7 @@
+{
+  "name": "@mechanical-wings/image-generation-core",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 image generation runtime package",
+  "type": "module"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/perplexity-plugin",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 Perplexity plugin",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

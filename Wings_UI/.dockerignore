@@ -1,0 +1,16 @@
+node_modules
+dist
+data
+.corepack
+.manus-logs
+.webdev
+.git
+.github
+.vscode
+.DS_Store
+*.log
+.env
+.env.local
+coverage
+gemini-code-*.py
+__manus__

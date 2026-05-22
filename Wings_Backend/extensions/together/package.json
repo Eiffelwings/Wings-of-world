@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/together-provider",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 Together provider plugin",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

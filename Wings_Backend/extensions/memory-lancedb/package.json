@@ -1,0 +1,25 @@
+{
+  "name": "@mechanical-wings/memory-lancedb",
+  "version": "2026.3.26",
+  "description": "Wings🪽 LanceDB-backed long-term memory plugin with auto-recall/capture",
+  "type": "module",
+  "dependencies": {
+    "@lancedb/lancedb": "^0.27.1",
+    "@sinclair/typebox": "0.34.48",
+    "openai": "^6.33.0"
+  },
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@mechanical-wings/memory-lancedb",
+      "localPath": "extensions/memory-lancedb",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2026.3.26"
+    },
+    "release": {
+      "publishToNpm": true
+    }
+  }
+}

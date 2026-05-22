@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/elevenlabs-speech",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 ElevenLabs speech plugin",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

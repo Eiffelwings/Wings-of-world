@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/cloudflare-ai-gateway-provider",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 Cloudflare AI Gateway provider plugin",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

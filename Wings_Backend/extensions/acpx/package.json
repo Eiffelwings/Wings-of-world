@@ -1,0 +1,14 @@
+{
+  "name": "@mechanical-wings/acpx",
+  "version": "2026.3.26",
+  "description": "Wings🪽 ACP runtime backend via acpx",
+  "type": "module",
+  "dependencies": {
+    "acpx": "0.3.1"
+  },
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
