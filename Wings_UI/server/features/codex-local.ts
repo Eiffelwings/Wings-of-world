@@ -3,6 +3,10 @@ import { spawn, type SpawnOptionsWithoutStdio } from "child_process";
 const POWERSHELL_CODEX_WRAPPER = `
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[Console]::InputEncoding = $utf8NoBom
+[Console]::OutputEncoding = $utf8NoBom
+$OutputEncoding = $utf8NoBom
 $commandPath = $env:WINGS_OF_WORLD_CODEX_CLI_COMMAND
 $rawArgs = $env:WINGS_OF_WORLD_CODEX_CLI_ARGS_JSON
 $decodedArgs = ConvertFrom-Json -InputObject $rawArgs

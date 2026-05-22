@@ -20,25 +20,37 @@ export default function SystemPage() {
   const [importText, setImportText] = useState("");
   const [importingMode, setImportingMode] = useState<"replace" | "merge" | null>(null);
   const [startingBackend, setStartingBackend] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   const load = async () => {
     setLoading(true);
-    try {
-      const [healthData, resourceData, readinessData, backendData] = await Promise.all([
-        api.getSystemHealth(),
-        api.getSystemResources(),
-        api.getSystemReadiness(),
-        api.getBackendStatus(),
-      ]);
-      setHealth(healthData);
-      setResources(resourceData);
-      setReadiness(readinessData);
-      setBackendStatus(backendData);
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
-      setLoading(false);
+    setLoadError("");
+    const [healthResult, resourceResult, readinessResult, backendResult] = await Promise.allSettled([
+      api.getSystemHealth(),
+      api.getSystemResources(),
+      api.getSystemReadiness(),
+      api.getBackendStatus(),
+    ]);
+    const failures: string[] = [];
+
+    if (healthResult.status === "fulfilled") setHealth(healthResult.value);
+    else failures.push(`Health: ${formatLoadFailure(healthResult.reason)}`);
+
+    if (resourceResult.status === "fulfilled") setResources(resourceResult.value);
+    else failures.push(`Resources: ${formatLoadFailure(resourceResult.reason)}`);
+
+    if (readinessResult.status === "fulfilled") setReadiness(readinessResult.value);
+    else failures.push(`Readiness: ${formatLoadFailure(readinessResult.reason)}`);
+
+    if (backendResult.status === "fulfilled") setBackendStatus(backendResult.value);
+    else failures.push(`Backend: ${formatLoadFailure(backendResult.reason)}`);
+
+    if (failures.length > 0) {
+      const message = failures.join(" | ");
+      setLoadError(message);
+      toast.error(message);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -109,6 +121,10 @@ export default function SystemPage() {
     }
   };
 
+  const uiReady = Boolean(health?.ok && readiness && readiness.summary.error === 0);
+  const backendReady = Boolean(backendStatus?.running && backendStatus.ready);
+  const backendState = backendReady ? "ready" : backendStatus?.running ? "degraded" : "offline";
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <PageHero
@@ -169,6 +185,61 @@ export default function SystemPage() {
           />
         </div>
       </PageHero>
+
+      {loadError ? (
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="flex items-start gap-3 pt-6">
+            <TriangleAlert className="mt-0.5 h-5 w-5 text-destructive" />
+            <div className="space-y-1">
+              <div className="font-medium">Some diagnostics failed to load</div>
+              <div className="text-sm text-muted-foreground">{loadError}</div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Local Production Readiness</CardTitle>
+          <CardDescription>
+            Separates the web UI runtime from the optional backend gateway so the operator can see what is actually usable now.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          <ReadinessScope
+            title="Wings_UI"
+            status={uiReady ? "ready" : readiness?.overall || "checking"}
+            detail={
+              uiReady
+                ? "Local UI, API, provider route, storage, tools, and Telegram diagnostics are responding."
+                : readiness?.checks.find((check) => check.status !== "ready")?.detail || "Waiting for readiness checks."
+            }
+            action={
+              uiReady
+                ? "Ready for local operation."
+                : readiness?.checks.find((check) => check.status !== "ready")?.action || "Refresh checks after fixing the highlighted blocker."
+            }
+            tone={uiReady ? "ready" : "warning"}
+          />
+          <ReadinessScope
+            title="Wings_Backend integration"
+            status={backendState}
+            detail={
+              backendReady
+                ? `Gateway ready at ${backendStatus?.gatewayUrl}`
+                : backendStatus?.running
+                  ? `Gateway is reachable at ${backendStatus?.gatewayUrl}, but readiness is not green.`
+                  : `Gateway offline at ${backendStatus?.gatewayUrl || "unknown URL"}.`
+            }
+            action={
+              backendReady
+                ? "Backend bridge is ready."
+                : backendStatus?.recommendedAction || "Start the backend gateway or run the displayed command manually."
+            }
+            tone={backendReady ? "ready" : "warning"}
+          />
+        </CardContent>
+      </Card>
 
       {readiness?.summary.warning ? (
         <Card className="border-amber-500/40 bg-amber-500/5">
@@ -384,6 +455,40 @@ function BackendLine({ label, value }: { label: string; value: string | number }
     <div className="rounded-xl border p-3">
       <div className="text-xs font-medium uppercase text-muted-foreground">{label}</div>
       <code className="mt-1 block break-all text-xs">{value}</code>
+    </div>
+  );
+}
+
+function formatLoadFailure(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function ReadinessScope({
+  title,
+  status,
+  detail,
+  action,
+  tone,
+}: {
+  title: string;
+  status: string;
+  detail: string;
+  action: string;
+  tone: "ready" | "warning";
+}) {
+  return (
+    <div className="rounded-xl border p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold">{title}</div>
+          <div className="mt-1 text-2xl font-semibold">{status}</div>
+        </div>
+        <Badge variant={tone === "ready" ? "default" : "secondary"} className="rounded-full">
+          {tone === "ready" ? "usable" : "action needed"}
+        </Badge>
+      </div>
+      <div className="mt-3 text-sm text-muted-foreground">{detail}</div>
+      <div className="mt-3 rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">{action}</div>
     </div>
   );
 }

@@ -47,6 +47,7 @@ import {
   formatBackendCronCommand,
   redactBackendCronAgentArgs,
 } from "./features/backend-cron.js";
+import { createBackendBridge, type BackendBridgeStatus } from "./features/backend-bridge.js";
 import {
   type WebhookConfig as SharedWebhookConfig,
   type WebhookEvent as SharedWebhookEvent,
@@ -289,18 +290,6 @@ function envFlag(primary: string, fallback: string | undefined, defaultValue: bo
   return value !== "false" && value !== "0";
 }
 
-function normalizeBackendGatewayHttpUrl(raw: string) {
-  try {
-    const url = new URL(raw);
-    if (url.protocol === "ws:") url.protocol = "http:";
-    if (url.protocol === "wss:") url.protocol = "https:";
-    return url.toString().replace(/\/$/, "");
-  } catch {
-    const port = Number.isFinite(BACKEND_GATEWAY_PORT) ? BACKEND_GATEWAY_PORT : 18789;
-    return `http://127.0.0.1:${port}`;
-  }
-}
-
 function resolveDefaultDataDir() {
   const homeDir = os.homedir();
   const projectDataDir = path.join(PROJECT_ROOT, "data");
@@ -329,7 +318,13 @@ function resolveDefaultDataDir() {
   return canWriteDir(preferred) ? preferred : projectDataDir;
 }
 
-const DATA_DIR = envValue("WINGS_OF_WORLD_DATA_DIR", "WINGS_DATA_DIR") || resolveDefaultDataDir();
+function resolveConfiguredDataDir() {
+  const configured = envValue("WINGS_OF_WORLD_DATA_DIR", "WINGS_DATA_DIR");
+  if (!configured) return resolveDefaultDataDir();
+  return path.isAbsolute(configured) ? configured : path.resolve(PROJECT_ROOT, configured);
+}
+
+const DATA_DIR = resolveConfiguredDataDir();
 const CONFIG_FILE = path.join(DATA_DIR, "config.json");
 const APP_AUTH_FILE = path.join(DATA_DIR, "app-auth.json");
 const WORKFLOWS_FILE = path.join(DATA_DIR, "workflows.json");
@@ -350,16 +345,12 @@ const MACROS_FILE = path.join(DATA_DIR, "macros.json");
 const MACRO_HISTORY_FILE = path.join(DATA_DIR, "macro-history.json");
 const GENERATED_IMAGES_DIR = path.join(DATA_DIR, "generated-images");
 const GENERATED_IMAGES_FILE = path.join(DATA_DIR, "generated-images.json");
-const BACKEND_GATEWAY_PORT = Number(envValue("WINGS_OF_WORLD_BACKEND_GATEWAY_PORT", "OPENCLAW_GATEWAY_PORT") || "18789");
-const BACKEND_GATEWAY_URL = normalizeBackendGatewayHttpUrl(
-  envValue("WINGS_OF_WORLD_BACKEND_GATEWAY_URL", "OPENCLAW_GATEWAY_URL") ||
-    `http://127.0.0.1:${Number.isFinite(BACKEND_GATEWAY_PORT) ? BACKEND_GATEWAY_PORT : 18789}`,
-);
-const BACKEND_GATEWAY_STATE_DIR =
-  envValue("WINGS_OF_WORLD_BACKEND_STATE_DIR", "OPENCLAW_STATE_DIR") ||
-  path.join(DATA_DIR, "backend-gateway");
-const BACKEND_GATEWAY_LOG_DIR = path.join(DATA_DIR, "logs");
 const SQLITE_FILE = path.join(DATA_DIR, "wings-of-world.db");
+const backendBridge = createBackendBridge({
+  projectRoot: PROJECT_ROOT,
+  dataDir: DATA_DIR,
+  appendAuditEntry,
+});
 
 // ... (existing code)
 
@@ -4116,7 +4107,7 @@ function isDataDirWritable() {
   }
 }
 
-function buildSystemReadiness() {
+function buildSystemReadiness(options?: { backendStatus?: BackendBridgeStatus }) {
   const cfg = loadConfig();
   const providerHealth = getProviderHealthSnapshot(cfg);
   const authState = persistPrunedAuthState();
@@ -4128,6 +4119,7 @@ function buildSystemReadiness() {
     (task) => task.status === "pending" || task.status === "in_progress" || task.status === "blocked",
   );
   const toolRootsPresent = TOOL_WORKSPACE_ROOTS.filter((root) => fs.existsSync(root));
+  const backendStatus = options?.backendStatus;
   const checks: ReadinessCheck[] = [
     isDataDirWritable()
       ? {
@@ -4280,6 +4272,29 @@ function buildSystemReadiness() {
           action: "Set TELEGRAM_BOT_TOKEN to enable Telegram chat integration.",
         },
   ];
+
+  if (backendStatus) {
+    checks.push(
+      backendStatus.running && backendStatus.ready
+        ? {
+            id: "backend-integration",
+            label: "Backend integration",
+            status: "ready",
+            detail: `Wings_Backend gateway is ready at ${backendStatus.gatewayUrl}`,
+          }
+        : {
+            id: "backend-integration",
+            label: "Backend integration",
+            status: "warning",
+            detail: backendStatus.running
+              ? `Gateway is reachable at ${backendStatus.gatewayUrl}, but readiness is not green.`
+              : `Wings_UI is running locally, but Wings_Backend gateway is offline at ${backendStatus.gatewayUrl}.`,
+            action:
+              backendStatus.recommendedAction ||
+              "Open System > Backend Gateway, start the gateway, or run the displayed backend command manually.",
+          },
+    );
+  }
 
   const summary = checks.reduce(
     (acc, check) => {
@@ -7737,283 +7752,9 @@ async function runScheduledTask(task: ScheduledTask): Promise<{ ok: boolean; sum
   return schRunScheduledTask(task, buildScheduledTaskDeps());
 }
 
-type BackendCliResolution = {
-  command: string;
-  baseArgs: string[];
-  cwd: string;
-  source: "env" | "local" | "global";
-  backendRoot: string;
-  localEntry: string;
-};
-
-type BackendProbeResult = {
-  ok: boolean;
-  status?: number;
-  bodyPreview?: string;
-  error?: string;
-};
-
-function getBackendRoot() {
-  return path.resolve(PROJECT_ROOT, "..", "Wings_Backend");
-}
-
-function resolveBackendCli(): BackendCliResolution {
-  const explicit = process.env.WINGS_OF_WORLD_BACKEND_CLI?.trim();
-  const backendRoot = getBackendRoot();
-  const localEntry = path.join(backendRoot, "wings-of-world-backend.mjs");
-
-  if (explicit) {
-    const cwd = fs.existsSync(backendRoot) ? backendRoot : path.resolve(PROJECT_ROOT, "..");
-    if (explicit.toLowerCase().endsWith(".mjs") || explicit.toLowerCase().endsWith(".js")) {
-      return { command: process.execPath, baseArgs: [explicit], cwd, source: "env", backendRoot, localEntry };
-    }
-    return { command: explicit, baseArgs: [] as string[], cwd, source: "env", backendRoot, localEntry };
-  }
-
-  if (fs.existsSync(localEntry)) {
-    return { command: process.execPath, baseArgs: [localEntry], cwd: backendRoot, source: "local", backendRoot, localEntry };
-  }
-
-  return {
-    command: "wings-of-world-backend",
-    baseArgs: [] as string[],
-    cwd: path.resolve(PROJECT_ROOT, ".."),
-    source: "global",
-    backendRoot,
-    localEntry,
-  };
-}
-
-function resolveBackendCronCli() {
-  const cli = resolveBackendCli();
-  return { command: cli.command, baseArgs: cli.baseArgs, cwd: cli.cwd };
-}
-
-function formatShellCommand(command: string, args: string[]) {
-  const quote = (value: string) =>
-    /^[a-zA-Z0-9_./:=@+-]+$/.test(value)
-      ? value
-      : JSON.stringify(value);
-  return [command, ...args].map(quote).join(" ");
-}
-
-function getBackendBuildInfo(cli = resolveBackendCli()) {
-  const packageJson = path.join(cli.backendRoot, "package.json");
-  const scriptsDir = path.join(cli.backendRoot, "scripts");
-  const nodeModulesDir = path.join(cli.backendRoot, "node_modules");
-  const srcEntry = path.join(cli.backendRoot, "src", "entry.ts");
-  const distEntryCandidates = [
-    path.join(cli.backendRoot, "dist", "entry.js"),
-    path.join(cli.backendRoot, "dist", "entry.mjs"),
-  ];
-  const distEntry = distEntryCandidates.find((candidate) => fs.existsSync(candidate)) || null;
-  return {
-    backendRoot: cli.backendRoot,
-    packageJsonExists: fs.existsSync(packageJson),
-    scriptsDirExists: fs.existsSync(scriptsDir),
-    nodeModulesExists: fs.existsSync(nodeModulesDir),
-    localEntryExists: fs.existsSync(cli.localEntry),
-    sourceEntryExists: fs.existsSync(srcEntry),
-    distEntry,
-    distEntryExists: Boolean(distEntry),
-  };
-}
-
-function getBackendGatewayPort() {
-  if (Number.isFinite(BACKEND_GATEWAY_PORT) && BACKEND_GATEWAY_PORT > 0) {
-    return BACKEND_GATEWAY_PORT;
-  }
-  try {
-    const url = new URL(BACKEND_GATEWAY_URL);
-    const port = Number(url.port);
-    return Number.isFinite(port) && port > 0 ? port : 18789;
-  } catch {
-    return 18789;
-  }
-}
-
-async function probeBackendGateway(pathname: "/healthz" | "/readyz"): Promise<BackendProbeResult> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 1500);
-  try {
-    const res = await fetch(`${BACKEND_GATEWAY_URL}${pathname}`, {
-      signal: controller.signal,
-      headers: { accept: "application/json, text/plain;q=0.9" },
-    });
-    const text = await res.text().catch(() => "");
-    return {
-      ok: res.ok,
-      status: res.status,
-      bodyPreview: text.slice(0, 300),
-    };
-  } catch (error: any) {
-    return {
-      ok: false,
-      error: error?.name === "AbortError" ? "Probe timed out" : error?.message || String(error),
-    };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function canStartBackendGateway(status: {
-  running: boolean;
-  cli: { source: BackendCliResolution["source"] };
-  local: { distEntryExists: boolean };
-}) {
-  if (status.running) return true;
-  if (status.cli.source === "env" || status.cli.source === "global") return true;
-  return status.local.distEntryExists;
-}
-
-function getBackendRecommendedAction(params: {
-  cli: BackendCliResolution;
-  build: ReturnType<typeof getBackendBuildInfo>;
-  health: BackendProbeResult;
-  ready: BackendProbeResult;
-}) {
-  if (params.health.ok && params.ready.ok) return null;
-  if (params.health.ok && !params.ready.ok) {
-    return "Gateway is live but not ready. Run backend setup, configure gateway.mode=local, or continue with --allow-unconfigured for local development.";
-  }
-  if (params.cli.source !== "local") {
-    return "Start the configured backend CLI from System or run the displayed gateway command manually.";
-  }
-  if (!params.build.packageJsonExists || !params.build.localEntryExists) {
-    return "Place a complete Wings_Backend checkout next to Wings_UI or set WINGS_OF_WORLD_BACKEND_CLI to a built backend CLI.";
-  }
-  if (!params.build.nodeModulesExists) {
-    return "Run pnpm install --filter . in Wings_Backend before starting the gateway.";
-  }
-  if (!params.build.distEntryExists) {
-    if (!params.build.scriptsDirExists) {
-      return "This Wings_Backend checkout is missing build scripts and dist output. Restore the full backend source archive or set WINGS_OF_WORLD_BACKEND_CLI to a built backend CLI.";
-    }
-    return "Run pnpm build in Wings_Backend, then start the gateway again.";
-  }
-  return "Start the backend gateway from System or run the displayed command manually.";
-}
-
-async function getBackendBridgeStatus() {
-  const cli = resolveBackendCli();
-  const build = getBackendBuildInfo(cli);
-  const health = await probeBackendGateway("/healthz");
-  const ready: BackendProbeResult = health.ok
-    ? await probeBackendGateway("/readyz")
-    : { ok: false, error: "Skipped because /healthz is not reachable" };
-  const gatewayArgs = ["gateway", "--allow-unconfigured", "--port", String(getBackendGatewayPort())];
-  const startArgs = [...cli.baseArgs, ...gatewayArgs];
-  const logs = {
-    stdout: path.join(BACKEND_GATEWAY_LOG_DIR, "backend-gateway.out.log"),
-    stderr: path.join(BACKEND_GATEWAY_LOG_DIR, "backend-gateway.err.log"),
-  };
-  const status = {
-    ok: health.ok,
-    running: health.ok,
-    healthy: health.ok,
-    ready: ready.ok,
-    gatewayUrl: BACKEND_GATEWAY_URL,
-    port: getBackendGatewayPort(),
-    stateDir: BACKEND_GATEWAY_STATE_DIR,
-    logs,
-    cli: {
-      command: cli.command,
-      baseArgs: cli.baseArgs,
-      cwd: cli.cwd,
-      source: cli.source,
-      startCommand: formatShellCommand(cli.command, startArgs),
-    },
-    local: build,
-    probes: {
-      healthz: health,
-      readyz: ready,
-    },
-    timestamp: new Date().toISOString(),
-    recommendedAction: getBackendRecommendedAction({ cli, build, health, ready }),
-  };
-  return {
-    ...status,
-    canStart: canStartBackendGateway(status),
-  };
-}
-
-function shouldSpawnWithShell(command: string) {
-  if (process.platform !== "win32") return false;
-  return !command.toLowerCase().endsWith(".exe");
-}
-
-function wait(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
-
-async function startBackendGateway() {
-  const before = await getBackendBridgeStatus();
-  if (before.running) {
-    return { ok: true as const, alreadyRunning: true, status: before };
-  }
-  if (!before.canStart) {
-    return {
-      ok: false as const,
-      status: before,
-      error: before.recommendedAction || "Backend gateway is not startable from this checkout.",
-    };
-  }
-
-  const cli = resolveBackendCli();
-  const gatewayArgs = ["gateway", "--allow-unconfigured", "--port", String(getBackendGatewayPort())];
-  const args = [...cli.baseArgs, ...gatewayArgs];
-  fs.mkdirSync(BACKEND_GATEWAY_STATE_DIR, { recursive: true });
-  fs.mkdirSync(BACKEND_GATEWAY_LOG_DIR, { recursive: true });
-
-  const stdoutFd = fs.openSync(path.join(BACKEND_GATEWAY_LOG_DIR, "backend-gateway.out.log"), "a");
-  const stderrFd = fs.openSync(path.join(BACKEND_GATEWAY_LOG_DIR, "backend-gateway.err.log"), "a");
-  try {
-    const child = spawn(cli.command, args, {
-      cwd: cli.cwd,
-      detached: true,
-      shell: shouldSpawnWithShell(cli.command),
-      stdio: ["ignore", stdoutFd, stderrFd],
-      env: {
-        ...process.env,
-        WINGS_OF_WORLD_BACKEND_STATE_DIR: BACKEND_GATEWAY_STATE_DIR,
-        WINGS_OF_WORLD_BACKEND_CONFIG_PATH: path.join(BACKEND_GATEWAY_STATE_DIR, "wings-of-world.json"),
-        OPENCLAW_STATE_DIR: BACKEND_GATEWAY_STATE_DIR,
-        OPENCLAW_CONFIG_PATH: path.join(BACKEND_GATEWAY_STATE_DIR, "wings-of-world.json"),
-      },
-    });
-    child.unref();
-    appendAuditEntry({
-      area: "system",
-      action: "backend-gateway-start",
-      status: "success",
-      summary: `Started backend gateway process ${child.pid || "unknown"} with ${formatShellCommand(cli.command, args)}`,
-    });
-
-    for (let attempt = 0; attempt < 15; attempt += 1) {
-      await wait(800);
-      const status = await getBackendBridgeStatus();
-      if (status.running) {
-        return { ok: true as const, alreadyRunning: false, pid: child.pid, status };
-      }
-    }
-    return { ok: true as const, alreadyRunning: false, pid: child.pid, status: await getBackendBridgeStatus() };
-  } catch (error: any) {
-    appendAuditEntry({
-      area: "system",
-      action: "backend-gateway-start",
-      status: "error",
-      summary: error?.message || String(error),
-    });
-    return { ok: false as const, status: before, error: error?.message || String(error) };
-  } finally {
-    fs.closeSync(stdoutFd);
-    fs.closeSync(stderrFd);
-  }
-}
-
 async function registerBackendCronAgentTask(task: ScheduledTask) {
   const cronArgs = [...buildBackendCronAgentArgs(task), "--json"];
-  const cli = resolveBackendCronCli();
+  const cli = backendBridge.resolveBackendCronCli();
   const args = [...cli.baseArgs, ...cronArgs];
   const command = formatBackendCronCommand(
     cli.command,
@@ -10887,11 +10628,11 @@ async function startServer() {
   });
 
   app.get("/api/backend/status", async (_req: Request, res: Response) => {
-    res.json(await getBackendBridgeStatus());
+    res.json(await backendBridge.getBackendBridgeStatus());
   });
 
   app.post("/api/backend/start", async (_req: Request, res: Response) => {
-    const result = await startBackendGateway();
+    const result = await backendBridge.startBackendGateway();
     if (!result.ok) {
       return res.status(409).json(result);
     }
@@ -10975,8 +10716,8 @@ async function startServer() {
     });
   });
 
-  app.get("/api/system/readiness", (_req, res) => {
-    res.json(buildSystemReadiness());
+  app.get("/api/system/readiness", async (_req, res) => {
+    res.json(buildSystemReadiness({ backendStatus: await backendBridge.getBackendBridgeStatus() }));
   });
 
   app.get("/api/system/export", (_req, res) => {

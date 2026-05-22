@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { buildCodexSpawnPlan, formatCodexCliError } from "../features/codex-local.js";
 
@@ -17,6 +18,45 @@ describe("codex local spawn plan", () => {
     expect(JSON.parse(plan.env.WINGS_OF_WORLD_CODEX_CLI_ARGS_JSON)).toContain(
       "C:\\Path\\To\\Wings Of World",
     );
+    const encodedIndex = plan.args.indexOf("-EncodedCommand");
+    expect(encodedIndex).toBeGreaterThanOrEqual(0);
+    const wrapper = Buffer.from(plan.args[encodedIndex + 1], "base64").toString("utf16le");
+    expect(wrapper).toContain("$OutputEncoding");
+    expect(wrapper).toContain("UTF8Encoding");
+  });
+
+  it.runIf(process.platform === "win32")("preserves Unicode stdin through the Windows wrapper", async () => {
+    const echoScript = [
+      "process.stdin.setEncoding('utf8');",
+      "let input = '';",
+      "process.stdin.on('data', chunk => input += chunk);",
+      "process.stdin.on('end', () => process.stdout.write(input));",
+    ].join("");
+    const plan = buildCodexSpawnPlan(["-e", echoScript], {
+      platform: "win32",
+      command: process.execPath,
+    });
+
+    const output = await new Promise<string>((resolve, reject) => {
+      const child = spawn(plan.command, plan.args, {
+        env: { ...process.env, ...plan.env },
+        shell: plan.shell,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      let stdout = "";
+      let stderr = "";
+      child.stdout.on("data", (chunk) => { stdout += chunk.toString("utf8"); });
+      child.stderr.on("data", (chunk) => { stderr += chunk.toString("utf8"); });
+      child.on("error", reject);
+      child.on("exit", (code) => {
+        if (code === 0) resolve(stdout);
+        else reject(new Error(stderr || `child exited with code ${code}`));
+      });
+      child.stdin.end("ภาษาไทยใน Telegram");
+    });
+
+    expect(output).toContain("ภาษาไทยใน Telegram");
+    expect(output).not.toContain("????");
   });
 
   it("uses direct exec on non-Windows platforms", () => {
