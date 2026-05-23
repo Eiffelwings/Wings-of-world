@@ -189,7 +189,7 @@ function createOpenAiConfigWithResolvedApiKey(mergeMode = false): WingsConfig {
       providers: {
         openai: {
           baseUrl: "https://api.openai.com/v1",
-          apiKey: "sk-plaintext-should-not-appear", // pragma: allowlist secret; simulates resolved ${OPENAI_API_KEY}
+          apiKey: "sk-redacted-test-key", // pragma: allowlist secret; simulates resolved ${OPENAI_API_KEY}
           api: "openai-completions",
           models: [
             {
@@ -209,7 +209,7 @@ function createOpenAiConfigWithResolvedApiKey(mergeMode = false): WingsConfig {
 }
 
 async function expectOpenAiEnvMarkerApiKey(options?: { seedMergedProvider?: boolean }) {
-  await withEnvVar("OPENAI_API_KEY", "sk-plaintext-should-not-appear", async () => {
+  await withEnvVar("OPENAI_API_KEY", "sk-redacted-test-key", async () => {
     await withTempHome(async () => {
       if (options?.seedMergedProvider) {
         await writeAgentModelsJson({

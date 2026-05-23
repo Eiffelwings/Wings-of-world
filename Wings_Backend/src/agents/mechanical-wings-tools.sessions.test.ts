@@ -454,7 +454,7 @@ describe("sessions tools", () => {
             {
               role: "assistant",
               content: [
-                { type: "text", text: "Use sk-1234567890abcdef1234 to authenticate with the API." },
+                { type: "text", text: "Use sk-redacted-test-key to authenticate with the API." },
               ],
             },
           ],
@@ -482,13 +482,13 @@ describe("sessions tools", () => {
     const msg = details.messages?.[0] as { content?: Array<{ type?: string; text?: string }> };
     const textBlock = msg?.content?.find((b) => b.type === "text");
     expect(typeof textBlock?.text).toBe("string");
-    expect(textBlock?.text).not.toContain("sk-1234567890abcdef1234");
+    expect(textBlock?.text).not.toContain("sk-redacted-test-key");
   });
 
   it("sessions_history sets both contentRedacted and contentTruncated independently", async () => {
     callGatewayMock.mockReset();
     const longPrefix = "safe text ".repeat(420);
-    const sensitiveText = `${longPrefix} sk-9876543210fedcba9876 end`;
+    const sensitiveText = `${longPrefix} sk-redacted-test-key end`;
     callGatewayMock.mockImplementation(async (opts: unknown) => {
       const request = opts as { method?: string };
       if (request.method === "chat.history") {

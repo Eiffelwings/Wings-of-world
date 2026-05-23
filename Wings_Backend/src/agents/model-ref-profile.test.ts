@@ -48,9 +48,9 @@ describe("splitTrailingAuthProfile", () => {
   });
 
   it("uses first @ after last slash for email-based auth profiles", () => {
-    expect(splitTrailingAuthProfile("flash@google-gemini-cli:test@gmail.com")).toEqual({
+    expect(splitTrailingAuthProfile("flash@google-gemini-cli:user@example.com")).toEqual({
       model: "flash",
-      profile: "google-gemini-cli:test@gmail.com",
+      profile: "google-gemini-cli:user@example.com",
     });
   });
 

@@ -379,7 +379,7 @@ x-i18n:
       },
     ],
     gmail: {
-      account: "mechanical-wings@gmail.com",
+      account: "user@example.com",
       label: "INBOX",
       topic: "projects/<project-id>/topics/gog-gmail-watch",
       subscription: "gog-gmail-watch-push",

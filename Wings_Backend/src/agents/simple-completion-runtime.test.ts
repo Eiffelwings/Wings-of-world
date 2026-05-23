@@ -212,7 +212,7 @@ describe("prepareSimpleCompletionModel", () => {
       modelRegistry: {},
     });
     hoisted.getApiKeyForModelMock.mockResolvedValueOnce({
-      apiKey: "ghu_original_github_token",
+      apiKey: "ghp_redacted_test_token",
       source: "profile:github-copilot:default",
       mode: "token",
     });
@@ -231,7 +231,7 @@ describe("prepareSimpleCompletionModel", () => {
     // The returned auth.apiKey should be the exchanged runtime token,
     // not the original GitHub token
     expect(result.auth.apiKey).toBe("copilot-runtime-token");
-    expect(result.auth.apiKey).not.toBe("ghu_original_github_token");
+    expect(result.auth.apiKey).not.toBe("ghp_redacted_test_token");
   });
 
   it("applies exchanged copilot baseUrl to returned model", async () => {

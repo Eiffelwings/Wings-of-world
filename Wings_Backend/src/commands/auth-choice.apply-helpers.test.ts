@@ -327,7 +327,7 @@ describe("ensureApiKeyFromEnvOrPrompt", () => {
   });
 
   it("never includes resolved env secret values in reference validation notes", async () => {
-    process.env.MINIMAX_API_KEY = "sk-minimax-redacted-value"; // pragma: allowlist secret
+    process.env.MINIMAX_API_KEY = "sk-redacted-test-key"; // pragma: allowlist secret
     delete process.env.MINIMAX_OAUTH_TOKEN;
 
     const select = vi.fn(async () => "env") as WizardPrompter["select"];
@@ -343,10 +343,10 @@ describe("ensureApiKeyFromEnvOrPrompt", () => {
       setCredential,
     });
 
-    expect(result).toBe("sk-minimax-redacted-value");
+    expect(result).toBe("sk-redacted-test-key");
     const noteMessages = note.mock.calls.map((call) => String(call.at(0) ?? "")).join("\n");
     expect(noteMessages).toContain("Validated environment variable MINIMAX_API_KEY.");
-    expect(noteMessages).not.toContain("sk-minimax-redacted-value");
+    expect(noteMessages).not.toContain("sk-redacted-test-key");
   });
 });
 

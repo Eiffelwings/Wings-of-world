@@ -98,7 +98,7 @@ x-i18n:
 
 ```bash
 mechanical-wings webhooks gmail setup \
-  --account mechanical-wings@gmail.com
+  --account user@example.com
 ```
 
 默认设置：
@@ -161,7 +161,7 @@ gcloud pubsub topics add-iam-policy-binding gog-gmail-watch \
 
 ```bash
 gog gmail watch start \
-  --account mechanical-wings@gmail.com \
+  --account user@example.com \
   --label INBOX \
   --topic projects/<project-id>/topics/gog-gmail-watch
 ```
@@ -174,7 +174,7 @@ gog gmail watch start \
 
 ```bash
 gog gmail watch serve \
-  --account mechanical-wings@gmail.com \
+  --account user@example.com \
   --bind 127.0.0.1 \
   --port 8788 \
   --path /gmail-pubsub \
@@ -221,8 +221,8 @@ gog gmail watch serve --verify-oidc --oidc-email <svc@...>
 
 ```bash
 gog gmail send \
-  --account mechanical-wings@gmail.com \
-  --to mechanical-wings@gmail.com \
+  --account user@example.com \
+  --to user@example.com \
   --subject "watch test" \
   --body "ping"
 ```
@@ -230,8 +230,8 @@ gog gmail send \
 检查 watch 状态和历史记录：
 
 ```bash
-gog gmail watch status --account mechanical-wings@gmail.com
-gog gmail history --account mechanical-wings@gmail.com --since <historyId>
+gog gmail watch status --account user@example.com
+gog gmail history --account user@example.com --since <historyId>
 ```
 
 ## 故障排除
@@ -243,7 +243,7 @@ gog gmail history --account mechanical-wings@gmail.com --since <historyId>
 ## 清理
 
 ```bash
-gog gmail watch stop --account mechanical-wings@gmail.com
+gog gmail watch stop --account user@example.com
 gcloud pubsub subscriptions delete gog-gmail-watch-push
 gcloud pubsub topics delete gog-gmail-watch
 ```

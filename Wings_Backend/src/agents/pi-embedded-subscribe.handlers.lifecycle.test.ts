@@ -133,7 +133,7 @@ describe("handleAgentEnd", () => {
       {
         role: "assistant",
         stopReason: "error",
-        errorMessage: "x-api-key: sk-abcdefghijklmnopqrstuvwxyz123456",
+        errorMessage: "x-api-key: sk-redacted-test-key",
         content: [{ type: "text", text: "" }],
       },
       { onAgentEvent },

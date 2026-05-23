@@ -408,7 +408,7 @@ Save to `~/.mechanical-wings/mechanical-wings.json` and you can DM the bot from 
       },
     ],
     gmail: {
-      account: "mechanical-wings@gmail.com",
+      account: "user@example.com",
       label: "INBOX",
       topic: "projects/<project-id>/topics/gog-gmail-watch",
       subscription: "gog-gmail-watch-push",

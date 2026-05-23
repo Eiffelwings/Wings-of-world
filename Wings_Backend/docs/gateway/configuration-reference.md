@@ -2709,7 +2709,7 @@ Auth: `Authorization: Bearer <token>` or `x-mechanical-wings-token: <token>`.
 {
   hooks: {
     gmail: {
-      account: "mechanical-wings@gmail.com",
+      account: "user@example.com",
       topic: "projects/<project-id>/topics/gog-gmail-watch",
       subscription: "gog-gmail-watch-push",
       pushToken: "shared-push-token",

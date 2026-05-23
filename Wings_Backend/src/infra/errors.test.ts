@@ -58,23 +58,23 @@ describe("error helpers", () => {
   });
 
   it("redacts sensitive tokens from formatted error messages", () => {
-    const token = "sk-abcdefghijklmnopqrstuv";
+    const token = "sk-redacted-test-key";
     const formatted = formatErrorMessage(new Error(`Authorization: Bearer ${token}`));
     expect(formatted).toContain("Authorization: Bearer");
     expect(formatted).not.toContain(token);
   });
 
   it("uses message-only formatting for INVALID_CONFIG and stack formatting otherwise", () => {
-    const invalidConfig = Object.assign(new Error("TOKEN=sk-abcdefghijklmnopqrstuv"), {
+    const invalidConfig = Object.assign(new Error("TOKEN=sk-redacted-test-key"), {
       code: "INVALID_CONFIG",
-      stack: "Error: TOKEN=sk-abcdefghijklmnopqrstuv\n    at ignored",
+      stack: "Error: TOKEN=sk-redacted-test-key\n    at ignored",
     });
     expect(formatUncaughtError(invalidConfig)).not.toContain("at ignored");
 
     const uncaught = new Error("boom");
-    uncaught.stack = "Error: Authorization: Bearer sk-abcdefghijklmnopqrstuv\n    at runTask";
+    uncaught.stack = "Error: Authorization: Bearer sk-redacted-test-key\n    at runTask";
     const formatted = formatUncaughtError(uncaught);
     expect(formatted).toContain("at runTask");
-    expect(formatted).not.toContain("sk-abcdefghijklmnopqrstuv");
+    expect(formatted).not.toContain("sk-redacted-test-key");
   });
 });

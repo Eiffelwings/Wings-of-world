@@ -57,7 +57,7 @@ describe("redactConfigSnapshot", () => {
       },
       models: {
         providers: {
-          openai: { apiKey: "sk-proj-abcdef1234567890ghij", baseUrl: "https://api.openai.com" },
+          openai: { apiKey: "sk-redacted-test-key", baseUrl: "https://api.openai.com" },
         },
       },
       shortSecret: { token: "short" },
@@ -86,7 +86,7 @@ describe("redactConfigSnapshot", () => {
           serviceAccount: {
             type: "service_account",
             client_email: "bot@example.iam.gserviceaccount.com",
-            private_key: "-----BEGIN PRIVATE KEY-----secret-----END PRIVATE KEY-----", // pragma: allowlist secret
+            private_key: "-----BEGIN REDACTED TEST KEY-----secret-----END REDACTED TEST KEY-----", // pragma: allowlist secret
           },
         },
       },
@@ -173,7 +173,7 @@ describe("redactConfigSnapshot", () => {
                 maxTokensField: "max_completion_tokens",
               },
             ],
-            apiKey: "sk-proj-abcdef1234567890ghij",
+            apiKey: "sk-redacted-test-key",
             accessToken: "access-token-value-1234567890",
             maxTokens: 8192,
             maxOutputTokens: 4096,
@@ -390,7 +390,7 @@ describe("redactConfigSnapshot", () => {
     const snapshot = makeSnapshot({
       env: {
         vars: {
-          OPENAI_API_KEY: "sk-proj-1234567890abcdefghij",
+          OPENAI_API_KEY: "sk-redacted-test-key",
           NODE_ENV: "production",
         },
       },

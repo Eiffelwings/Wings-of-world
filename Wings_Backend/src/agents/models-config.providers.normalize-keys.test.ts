@@ -80,13 +80,13 @@ describe("normalizeProviders", () => {
   it("replaces resolved env var value with env var name to prevent plaintext persistence", async () => {
     const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "mechanical-wings-agent-"));
     const original = process.env.OPENAI_API_KEY;
-    process.env.OPENAI_API_KEY = "sk-test-secret-value-12345"; // pragma: allowlist secret
+    process.env.OPENAI_API_KEY = "sk-redacted-test-key"; // pragma: allowlist secret
     const secretRefManagedProviders = new Set<string>();
     try {
       const providers: NonNullable<NonNullable<WingsConfig["models"]>["providers"]> = {
         openai: {
           baseUrl: "https://api.openai.com/v1",
-          apiKey: "sk-test-secret-value-12345", // pragma: allowlist secret; simulates resolved ${OPENAI_API_KEY}
+          apiKey: "sk-redacted-test-key", // pragma: allowlist secret; simulates resolved ${OPENAI_API_KEY}
           api: "openai-completions",
           models: [
             {

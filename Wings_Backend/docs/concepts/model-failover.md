@@ -35,7 +35,7 @@ Credential types:
 OAuth logins create distinct profiles so multiple accounts can coexist.
 
 - Default: `provider:default` when no email is available.
-- OAuth with email: `provider:<email>` (for example `google-antigravity:user@gmail.com`).
+- OAuth with email: `provider:<email>` (for example `google-antigravity:user@example.com`).
 
 Profiles live in `~/.mechanical-wings/agents/<agentId>/agent/auth-profiles.json` under `profiles`.
 

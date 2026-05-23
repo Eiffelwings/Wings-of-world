@@ -89,7 +89,7 @@ describe("models list auth-profile sync", () => {
             "openrouter:default": {
               type: "api_key",
               provider: "openrouter",
-              key: "sk-or-v1-regression-test",
+              key: "sk-redacted-test-key",
             },
           },
         },

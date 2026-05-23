@@ -38,7 +38,7 @@ x-i18n:
   - [如何在 Linux 上安装 Wings🪽？](#how-do-i-install-mechanical-wings-on-linux)
   - [如何在 VPS 上安装 Wings🪽？](#how-do-i-install-mechanical-wings-on-a-vps)
   - [云/VPS 安装指南在哪里？](#where-are-the-cloudvps-install-guides)
-  - [可以让 Wings🪽 自行更新吗？](#can-i-ask-mechanical-wings-to-update-itself)
+  - [可以让 Wings🪽 自行更新吗？](#can-i-ask-redacted-test-key)
   - [新手引导具体做了什么？](#新手引导具体做了什么)
   - [运行 Wings🪽 需要 Claude 或 OpenAI 订阅吗？](#do-i-need-a-claude-or-openai-subscription-to-run-this)
   - [能否使用 Claude Max 订阅而不需要 API 密钥？](#can-i-use-claude-max-subscription-without-an-api-key)

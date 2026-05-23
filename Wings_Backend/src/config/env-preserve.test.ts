@@ -16,10 +16,10 @@ describe("restoreEnvVarRefs", () => {
   });
 
   it("keeps new value when caller intentionally changed it", () => {
-    const incoming = { apiKey: "sk-ant-new-different-key" };
+    const incoming = { apiKey: "sk-redacted-test-key" };
     const parsed = { apiKey: "${ANTHROPIC_API_KEY}" };
     const result = restoreEnvVarRefs(incoming, parsed, env);
-    expect(result).toEqual({ apiKey: "sk-ant-new-different-key" });
+    expect(result).toEqual({ apiKey: "sk-redacted-test-key" });
   });
 
   it("handles nested objects", () => {

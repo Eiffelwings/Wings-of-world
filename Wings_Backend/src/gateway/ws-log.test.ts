@@ -38,7 +38,7 @@ describe("gateway ws log helpers", () => {
   });
 
   test("formatForLog redacts obvious secrets", () => {
-    const token = "sk-abcdefghijklmnopqrstuvwxyz123456";
+    const token = "sk-redacted-test-key";
     const out = formatForLog({ token });
     expect(out).toContain("token");
     expect(out).not.toContain(token);

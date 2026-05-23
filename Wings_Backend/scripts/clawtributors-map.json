@@ -32,9 +32,9 @@
     "django navarro": "djangonavarro220"
   },
   "emailToLogin": {
-    "steipete@gmail.com": "steipete",
-    "sbarrios93@gmail.com": "sebslight",
-    "rltorres26+github@gmail.com": "RandyVentures",
-    "hixvac@gmail.com": "VACInc"
+    "user@example.com": "steipete",
+    "user@example.com": "sebslight",
+    "user@example.com": "RandyVentures",
+    "user@example.com": "VACInc"
   }
 }

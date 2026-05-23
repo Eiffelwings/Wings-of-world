@@ -32,7 +32,7 @@ describe("resolveModelAuthLabel", () => {
         "github-copilot:default": {
           type: "token",
           provider: "github-copilot",
-          token: "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", // pragma: allowlist secret
+          token: "ghp_redacted_test_token", // pragma: allowlist secret
           tokenRef: { source: "env", provider: "default", id: "GITHUB_TOKEN" },
         },
       },

@@ -481,11 +481,11 @@ describe("getApiKeyForModel", () => {
     await withEnvAsync(
       {
         OPENCODE_API_KEY: undefined,
-        OPENCODE_ZEN_API_KEY: "sk-opencode-zen-fallback", // pragma: allowlist secret
+        OPENCODE_ZEN_API_KEY: "sk-redacted-test-key", // pragma: allowlist secret
       },
       async () => {
         const resolved = resolveEnvApiKey("opencode-go");
-        expect(resolved?.apiKey).toBe("sk-opencode-zen-fallback");
+        expect(resolved?.apiKey).toBe("sk-redacted-test-key");
         expect(resolved?.source).toContain("OPENCODE_ZEN_API_KEY");
       },
     );

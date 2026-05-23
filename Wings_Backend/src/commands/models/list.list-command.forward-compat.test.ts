@@ -34,7 +34,7 @@ const mocks = vi.hoisted(() => {
     models: {
       providers: {
         openai: {
-          apiKey: "sk-resolved-runtime-value", // pragma: allowlist secret
+          apiKey: "sk-redacted-test-key", // pragma: allowlist secret
         },
       },
     },

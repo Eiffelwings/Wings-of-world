@@ -2689,7 +2689,7 @@ mechanical-wings gateway --port 19001
 {
   hooks: {
     gmail: {
-      account: "mechanical-wings@gmail.com",
+      account: "user@example.com",
       topic: "projects/<project-id>/topics/gog-gmail-watch",
       subscription: "gog-gmail-watch-push",
       pushToken: "shared-push-token",

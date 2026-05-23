@@ -316,24 +316,24 @@ describe("diagnostics-otel service", () => {
 
   test("redacts sensitive data from log messages before export", async () => {
     const emitCall = await emitAndCaptureLog({
-      0: "Using API key sk-1234567890abcdef1234567890abcdef",
+      0: "Using API key sk-redacted-test-key",
       _meta: { logLevelName: "INFO", date: new Date() },
     });
 
-    expect(emitCall?.body).not.toContain("sk-1234567890abcdef1234567890abcdef");
+    expect(emitCall?.body).not.toContain("sk-redacted-test-key");
     expect(emitCall?.body).toContain("sk-123");
     expect(emitCall?.body).toContain("…");
   });
 
   test("redacts sensitive data from log attributes before export", async () => {
     const emitCall = await emitAndCaptureLog({
-      0: '{"token":"ghp_abcdefghijklmnopqrstuvwxyz123456"}', // pragma: allowlist secret
+      0: '{"token":"ghp_redacted_test_token"}', // pragma: allowlist secret
       1: "auth configured",
       _meta: { logLevelName: "DEBUG", date: new Date() },
     });
 
     const tokenAttr = emitCall?.attributes?.["mechanical-wings.token"];
-    expect(tokenAttr).not.toBe("ghp_abcdefghijklmnopqrstuvwxyz123456"); // pragma: allowlist secret
+    expect(tokenAttr).not.toBe("ghp_redacted_test_token"); // pragma: allowlist secret
     if (typeof tokenAttr === "string") {
       expect(tokenAttr).toContain("…");
     }
@@ -347,7 +347,7 @@ describe("diagnostics-otel service", () => {
     emitDiagnosticEvent({
       type: "session.state",
       state: "waiting",
-      reason: "token=ghp_abcdefghijklmnopqrstuvwxyz123456", // pragma: allowlist secret
+      reason: "token=ghp_redacted_test_token", // pragma: allowlist secret
     });
 
     const sessionCounter = telemetryState.counters.get("mechanical-wings.session.state");
@@ -360,7 +360,7 @@ describe("diagnostics-otel service", () => {
     const attrs = sessionCounter?.add.mock.calls[0]?.[1] as Record<string, unknown> | undefined;
     expect(typeof attrs?.["mechanical-wings.reason"]).toBe("string");
     expect(String(attrs?.["mechanical-wings.reason"])).not.toContain(
-      "ghp_abcdefghijklmnopqrstuvwxyz123456", // pragma: allowlist secret
+      "ghp_redacted_test_token", // pragma: allowlist secret
     );
     await service.stop?.(ctx);
   });

@@ -74,7 +74,7 @@ x-i18n:
 
 如果你希望机器人从**独立的 iMessage 身份**发送（并保持你的个人"信息"整洁），请使用专用 Apple ID + 专用 macOS 用户。
 
-1. 创建专用 Apple ID（例如：`my-cool-bot@icloud.com`）。
+1. 创建专用 Apple ID（例如：`user@example.com`）。
    - Apple 可能需要电话号码进行验证 / 2FA。
 2. 创建 macOS 用户（例如：`mechanical-wingshome`）并登录。
 3. 在该 macOS 用户中打开"信息"并使用机器人 Apple ID 登录 iMessage。

@@ -1746,7 +1746,7 @@ describe("applyExtraParamsToAgent", () => {
 
     // Simulate pi-agent-core passing an OAuth token (sk-ant-oat-*) as apiKey
     void agent.streamFn?.(model, context, {
-      apiKey: "sk-ant-oat01-test-oauth-token", // pragma: allowlist secret
+      apiKey: "sk-redacted-test-key", // pragma: allowlist secret
       headers: { "X-Custom": "1" },
     });
 

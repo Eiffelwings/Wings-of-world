@@ -57,7 +57,7 @@ describe("models-config provider auth provenance", () => {
             "byteplus:default": {
               type: "api_key",
               provider: "byteplus",
-              key: "sk-runtime-resolved-byteplus",
+              key: "sk-redacted-test-key",
               keyRef: { source: "file", provider: "vault", id: "/byteplus/apiKey" },
             },
             "together:default": {

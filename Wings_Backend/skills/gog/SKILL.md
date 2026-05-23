@@ -29,7 +29,7 @@ Use `gog` for Gmail/Calendar/Drive/Contacts/Sheets/Docs. Requires OAuth setup.
 Setup (once)
 
 - `gog auth credentials /path/to/client_secret.json`
-- `gog auth add you@gmail.com --services gmail,calendar,drive,contacts,docs,sheets`
+- `gog auth add user@example.com --services gmail,calendar,drive,contacts,docs,sheets`
 - `gog auth list`
 
 Common commands
@@ -108,7 +108,7 @@ Email Formatting
 
 Notes
 
-- Set `GOG_ACCOUNT=you@gmail.com` to avoid repeating `--account`.
+- Set `GOG_ACCOUNT=user@example.com` to avoid repeating `--account`.
 - For scripting, prefer `--json` plus `--no-input`.
 - Sheets values can be passed via `--values-json` (recommended) or as inline rows.
 - Docs supports export/cat/copy. In-place edits require a Docs API client (not in gog).

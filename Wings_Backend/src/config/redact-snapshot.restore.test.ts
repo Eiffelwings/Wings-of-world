@@ -148,7 +148,7 @@ describe("restoreRedactedValues", () => {
       models: {
         providers: {
           openai: {
-            apiKey: "sk-proj-fake-openai-api-key-value",
+            apiKey: "sk-redacted-test-key",
             baseUrl: "https://api.openai.com",
           },
         },
