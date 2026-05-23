@@ -1,0 +1,92 @@
+name: Local production gates
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  repository-safety:
+    name: Repository safety
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Block tracked runtime and private artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden_regex='(^|/)(node_modules|dist|dist-runtime|data|logs|coverage|\.agents|\.pi)(/|$)|(^|/)\.env($|\.)|(^|/).*\.(pem|key|p12|pfx|crt|cer|db|sqlite|sqlite3|zip|tgz)$'
+          allowed_regex='(^|/)\.env\.example$'
+          hits="$(git ls-files | grep -E "$forbidden_regex" | grep -Ev "$allowed_regex" || true)"
+          if [ -n "$hits" ]; then
+            echo "Forbidden tracked artifacts were found:"
+            echo "$hits"
+            exit 1
+          fi
+
+      - name: Block common secret formats outside test fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          secret_regex='(sk-[A-Za-z0-9_-]{32,}|gh[pousr]_[A-Za-z0-9_]{20,}|[0-9]{8,10}:[A-Za-z0-9_-]{35,}|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |OPENSSH |EC |DSA |)?PRIVATE KEY-----|xox[baprs]-[A-Za-z0-9-]{20,})'
+          if git grep -I -n -E "$secret_regex" -- . \
+            ':!**/pnpm-lock.yaml' \
+            ':!**/package-lock.json' \
+            ':!**/yarn.lock' \
+            ':!**/.detect-secrets.cfg' \
+            ':!**/*.test.ts' \
+            ':!**/*.test.tsx' \
+            ':!**/*.spec.ts' \
+            ':!**/*.spec.tsx'; then
+            echo "Secret-like values were found in tracked files."
+            exit 1
+          fi
+
+  wings-ui:
+    name: Wings UI verification
+    runs-on: ubuntu-latest
+    needs: repository-safety
+    defaults:
+      run:
+        working-directory: Wings_UI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: Wings_UI/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        run: pnpm audit --prod
+
+      - name: Typecheck
+        run: pnpm check
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Smoke verification
+        run: pnpm verify:smoke
