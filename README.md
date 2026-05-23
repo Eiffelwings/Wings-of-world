@@ -1,10 +1,12 @@
 # Wings Of World
 
-Wings Of World is a local-first AI operations workspace for chat, tools, visual workflows, memory, Telegram automation, and guarded agent execution.
+Wings Of World is a local-first AI operations workspace for chat, tools, visual workflows, memory, Telegram automation, LINE-ready operator workflows, and guarded agent execution.
 
 Image generation is available in the `Images` page and as the `generate_image` tool. It uses the configured OpenAI Images API compatible endpoint and stores generated files under `WINGS_OF_WORLD_DATA_DIR`.
 
 This repository is a cleaned professional handoff. It intentionally excludes local secrets, runtime data, dependency folders, generated builds, logs, and archived experiments.
+
+For public collaboration, read `CONTRIBUTING.md` and `SECURITY.md` before opening a pull request. Coding agents and human contributors should also follow `AGENTS.md` for scope control, evidence, rollback, and approval gates.
 
 ## Project Layout
 
@@ -12,6 +14,9 @@ This repository is a cleaned professional handoff. It intentionally excludes loc
 Wings Of World/
 |-- Wings_UI/        # React app, Express API, workflow engine, Telegram bridge
 |-- Wings_Backend/   # Multi-channel backend and integration runtime
+|-- AGENTS.md        # Agent operating playbook, permissions, rollback, evidence, and approval gates
+|-- CONTRIBUTING.md  # Contributor setup, PR rules, test gates, and public collaboration policy
+|-- SECURITY.md      # Vulnerability reporting, secrets policy, and production hardening notes
 |-- README.md
 |-- DEVELOPMENT_ROADMAP.md
 |-- TODONEXT.md
@@ -125,6 +130,8 @@ The builder supports the backend workflow node set:
 - Output
 
 Condition edges carry explicit `true` or `false` branch metadata. Loop nodes use bounded iteration and expose `context.item`, `context.index`, and `context.total` to body code.
+
+Bundled templates include summarization, file search, Telegram delivery, LINE reply drafting, small-operator daily briefs, family-time triage, and bounded loops. LINE templates create drafts and action plans only; real LINE send/webhook handling requires the backend LINE plugin documented in `LINE_SMALL_OPERATOR_AUTOMATION.md` and `Wings_Backend/docs/channels/line.md`.
 
 ## Security Notes
 

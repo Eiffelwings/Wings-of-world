@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { api, type GeneratedImageRecord } from "@/lib/api";
+import { api, type GeneratedImageRecord, type PublicSettings } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,28 @@ import { toast } from "sonner";
 
 const SIZE_OPTIONS = ["1024x1024", "1024x1536", "1536x1024"] as const;
 const QUALITY_OPTIONS = ["auto", "low", "medium", "high"] as const;
+const PROMPT_PRESETS = [
+  {
+    label: "Product UI",
+    prompt:
+      "A premium SaaS AI operations dashboard for Wings Of World, real product interface, clean visual hierarchy, polished lighting, crisp readable panels",
+  },
+  {
+    label: "Workflow",
+    prompt:
+      "A high-end visual workflow map for local AI agents, nodes connected by luminous paths, practical operations workspace, modern technical style",
+  },
+  {
+    label: "Telegram",
+    prompt:
+      "A professional Telegram AI assistant control surface, secure local operations, message routing, clean blue and cyan palette, production SaaS quality",
+  },
+  {
+    label: "Brand",
+    prompt:
+      "A sharp futuristic bird-wing emblem for Wings Of World, premium AI workspace brand mark, cyan glow, clean vector-like composition, high detail",
+  },
+] as const;
 
 function formatBytes(bytes: number) {
   if (!Number.isFinite(bytes) || bytes <= 0) return "0 KB";
@@ -104,11 +126,28 @@ export default function ImageStudioPage() {
   const [images, setImages] = useState<GeneratedImageRecord[]>([]);
   const [currentImage, setCurrentImage] = useState<GeneratedImageRecord | null>(null);
   const [loadingImages, setLoadingImages] = useState(true);
+  const [settings, setSettings] = useState<PublicSettings | null>(null);
+  const [settingsError, setSettingsError] = useState("");
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
 
   const latestImages = useMemo(() => images.slice(0, 12), [images]);
+  const imageProviderCompatible = settings
+    ? settings.provider === "openai" || settings.provider === "custom"
+    : false;
+  const imageProviderReady = settings
+    ? imageProviderCompatible && (!settings.apiKeyRequired || settings.hasApiKey)
+    : false;
   const providerLabel = currentImage?.model || model || "gpt-image-1";
+  const providerDetail = settingsError
+    ? settingsError
+    : settings
+      ? imageProviderReady
+        ? `${settings.provider} endpoint locked in Settings`
+        : imageProviderCompatible
+          ? "Add the image provider key in Settings"
+          : `${settings.provider} is not an image generation provider`
+      : "Checking configured provider";
 
   const refreshImages = async () => {
     setLoadingImages(true);
@@ -125,10 +164,22 @@ export default function ImageStudioPage() {
 
   useEffect(() => {
     void refreshImages();
+    api.getSettings()
+      .then((data) => {
+        setSettings(data);
+        setSettingsError("");
+      })
+      .catch((err: Error) => {
+        setSettingsError(err.message);
+      });
   }, []);
 
   const generate = async () => {
     const trimmedPrompt = prompt.trim();
+    if (!imageProviderReady) {
+      setError("Image generation needs OpenAI or a custom OpenAI-compatible image endpoint configured in Settings.");
+      return;
+    }
     if (trimmedPrompt.length < 3) {
       setError("Prompt must be at least 3 characters.");
       return;
@@ -177,17 +228,17 @@ export default function ImageStudioPage() {
             tone={images.length ? "ready" : "neutral"}
           />
           <PageMetricCard
+            title="Provider"
+            value={imageProviderReady ? "ready" : "needs setup"}
+            detail={providerDetail}
+            icon={WandSparkles}
+            tone={imageProviderReady ? "ready" : "warning"}
+          />
+          <PageMetricCard
             title="Size"
             value={size}
             detail="Current output dimensions."
             icon={WandSparkles}
-          />
-          <PageMetricCard
-            title="Quality"
-            value={quality}
-            detail="Provider-side rendering quality."
-            icon={Sparkles}
-            tone={quality === "high" ? "warning" : "neutral"}
           />
         </div>
       </PageHero>
@@ -196,9 +247,23 @@ export default function ImageStudioPage() {
         <Card className="rounded-lg shadow-sm">
           <CardHeader className="border-b">
             <CardTitle>Prompt</CardTitle>
-            <CardDescription>OpenAI Images API compatible generation.</CardDescription>
+            <CardDescription>
+              Uses the image provider configured in Settings. Per-request endpoint overrides are blocked.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 p-5">
+            <div
+              className={`rounded-md border p-3 text-sm ${
+                imageProviderReady
+                  ? "border-green-500/30 bg-green-500/5 text-green-800"
+                  : "border-amber-500/40 bg-amber-500/5 text-amber-900"
+              }`}
+            >
+              <div className="font-medium">
+                {imageProviderReady ? "Image provider ready" : "Image provider needs attention"}
+              </div>
+              <div className="mt-1 text-xs opacity-80">{providerDetail}</div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="image-prompt">Prompt</Label>
               <Textarea
@@ -208,6 +273,20 @@ export default function ImageStudioPage() {
                 rows={8}
                 className="resize-none"
               />
+              <div className="flex flex-wrap gap-2">
+                {PROMPT_PRESETS.map((preset) => (
+                  <Button
+                    key={preset.label}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-md"
+                    onClick={() => setPrompt(preset.prompt)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
             </div>
             <div className="grid gap-4">
               <div className="space-y-2">
@@ -253,7 +332,7 @@ export default function ImageStudioPage() {
                 {error}
               </div>
             ) : null}
-            <Button className="w-full rounded-md" onClick={() => void generate()} disabled={generating}>
+            <Button className="w-full rounded-md" onClick={() => void generate()} disabled={generating || !imageProviderReady}>
               {generating ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (

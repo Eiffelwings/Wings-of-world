@@ -4,8 +4,14 @@ import path from "node:path";
 import { captureEnv } from "../test-utils/env.js";
 import { cleanupSessionStateForTest } from "../test-utils/session-state-cleanup.js";
 
+const STATE_DIR_ENV_KEYS = [
+  "WINGS_OF_WORLD_BACKEND_STATE_DIR",
+  "WINGS_OF_WORLD_STATE_DIR",
+  "OPENCLAW_STATE_DIR",
+] as const;
+
 export function snapshotStateDirEnv() {
-  return captureEnv(["OPENCLAW_STATE_DIR"]);
+  return captureEnv([...STATE_DIR_ENV_KEYS]);
 }
 
 export function restoreStateDirEnv(snapshot: ReturnType<typeof snapshotStateDirEnv>): void {
@@ -13,6 +19,8 @@ export function restoreStateDirEnv(snapshot: ReturnType<typeof snapshotStateDirE
 }
 
 export function setStateDirEnv(stateDir: string): void {
+  process.env.WINGS_OF_WORLD_BACKEND_STATE_DIR = stateDir;
+  delete process.env.WINGS_OF_WORLD_STATE_DIR;
   process.env.OPENCLAW_STATE_DIR = stateDir;
 }
 

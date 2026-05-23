@@ -350,4 +350,182 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       { id: "loop-edge-2", source: "loop-node", target: "loop-output" },
     ],
   },
+  {
+    id: "line-reply-draft",
+    name: "LINE Reply Draft",
+    description: "Draft a safe LINE reply for a customer, partner, or community message without sending it automatically.",
+    tags: ["line", "reply", "customer-support"],
+    defaultInput:
+      "Customer asks: Can you confirm my order status and delivery time? They also want to know if payment was received.",
+    nodes: [
+      {
+        id: "line-reply-trigger",
+        type: "trigger",
+        data: {
+          label: "Incoming LINE Message",
+          kind: "trigger",
+          input: "Paste the customer or community message here",
+        },
+        position: { x: 60, y: 120 },
+      },
+      {
+        id: "line-reply-llm",
+        type: "llm",
+        data: {
+          label: "Draft Reply",
+          kind: "llm",
+          prompt: [
+            "Draft a LINE-ready reply for the message.",
+            "Keep it warm, concise, and practical for a small operator.",
+            "If the input is Thai, reply in Thai. Otherwise use the same language as the input.",
+            "Do not claim a fact that is not in the input. Mark anything that needs human confirmation.",
+            "Return: reply draft, missing facts, and next action.",
+          ].join("\n"),
+          model: "gpt-4o-mini",
+          provider: "primary",
+        },
+        position: { x: 340, y: 120 },
+      },
+      {
+        id: "line-reply-output",
+        type: "output",
+        data: { label: "Reply Draft", kind: "output" },
+        position: { x: 660, y: 120 },
+      },
+    ],
+    edges: [
+      { id: "line-reply-edge-1", source: "line-reply-trigger", target: "line-reply-llm" },
+      { id: "line-reply-edge-2", source: "line-reply-llm", target: "line-reply-output" },
+    ],
+  },
+  {
+    id: "small-shop-daily-brief",
+    name: "Small Operator Daily Brief",
+    description: "Turn scattered orders, messages, and tasks into a short owner action plan.",
+    tags: ["operations", "small-business", "daily-brief"],
+    defaultInput:
+      "Orders: 3 pending payments, 2 delivery questions, 1 return request. Tasks: buy packaging, answer LINE, prepare tomorrow stock.",
+    nodes: [
+      {
+        id: "small-brief-trigger",
+        type: "trigger",
+        data: {
+          label: "Notes And Messages",
+          kind: "trigger",
+          input: "Paste today's orders, messages, and tasks",
+        },
+        position: { x: 60, y: 150 },
+      },
+      {
+        id: "small-brief-llm",
+        type: "llm",
+        data: {
+          label: "Owner Brief",
+          kind: "llm",
+          prompt: [
+            "Create a daily brief for a small owner who needs more family time.",
+            "Prioritize only the work that changes customer trust, cash flow, or tomorrow's readiness.",
+            "Return: top 3 actions, replies to send, tasks to batch, tasks to postpone, and family-time cutoff.",
+            "Keep it short enough to read in under one minute.",
+          ].join("\n"),
+          model: "gpt-4o-mini",
+          provider: "primary",
+        },
+        position: { x: 350, y: 150 },
+      },
+      {
+        id: "small-brief-output",
+        type: "output",
+        data: { label: "Daily Brief", kind: "output" },
+        position: { x: 660, y: 150 },
+      },
+    ],
+    edges: [
+      { id: "small-brief-edge-1", source: "small-brief-trigger", target: "small-brief-llm" },
+      { id: "small-brief-edge-2", source: "small-brief-llm", target: "small-brief-output" },
+    ],
+  },
+  {
+    id: "family-time-auto-triage",
+    name: "Family Time Auto Triage",
+    description: "Separate urgent work from safe-to-delay requests and produce a respectful reply plan.",
+    tags: ["condition", "triage", "family-time"],
+    defaultInput: "Customer says the parcel may be lost and asks for help before tonight.",
+    nodes: [
+      {
+        id: "family-triage-trigger",
+        type: "trigger",
+        data: {
+          label: "Incoming Request",
+          kind: "trigger",
+          input: "Paste a work request that arrived near family time",
+        },
+        position: { x: 60, y: 210 },
+      },
+      {
+        id: "family-triage-check",
+        type: "condition",
+        data: {
+          label: "Needs Same-Day Action?",
+          kind: "condition",
+          condition:
+            "/urgent|lost|payment|refund|angry|complaint|today|tonight|broken|cannot|missing/i.test(input)",
+        },
+        position: { x: 360, y: 210 },
+      },
+      {
+        id: "family-triage-urgent",
+        type: "llm",
+        data: {
+          label: "Same-Day Plan",
+          kind: "llm",
+          prompt: [
+            "Treat this as same-day work.",
+            "Return the smallest action that protects trust, a short reply draft, and what can wait until tomorrow.",
+          ].join("\n"),
+          model: "gpt-4o-mini",
+          provider: "primary",
+        },
+        position: { x: 680, y: 80 },
+      },
+      {
+        id: "family-triage-later",
+        type: "llm",
+        data: {
+          label: "Defer Safely",
+          kind: "llm",
+          prompt: [
+            "Treat this as safe to defer.",
+            "Return a polite reply draft, a scheduled next step, and a one-line note for tomorrow's task list.",
+          ].join("\n"),
+          model: "gpt-4o-mini",
+          provider: "primary",
+        },
+        position: { x: 680, y: 340 },
+      },
+      {
+        id: "family-triage-output",
+        type: "output",
+        data: { label: "Triage Result", kind: "output" },
+        position: { x: 1010, y: 210 },
+      },
+    ],
+    edges: [
+      { id: "family-triage-edge-1", source: "family-triage-trigger", target: "family-triage-check" },
+      {
+        id: "family-triage-edge-true",
+        source: "family-triage-check",
+        target: "family-triage-urgent",
+        branch: "true",
+      },
+      {
+        id: "family-triage-edge-false",
+        source: "family-triage-check",
+        target: "family-triage-later",
+        branch: "false",
+      },
+      { id: "family-triage-edge-2", source: "family-triage-urgent", target: "family-triage-output" },
+      { id: "family-triage-edge-3", source: "family-triage-later", target: "family-triage-output" },
+    ],
+  },
 ];

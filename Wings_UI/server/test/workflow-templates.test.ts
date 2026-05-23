@@ -20,6 +20,9 @@ describe("workflow templates", () => {
       "telegram-delivery",
       "conditional-routing",
       "loop-line-items",
+      "line-reply-draft",
+      "small-shop-daily-brief",
+      "family-time-auto-triage",
     ]);
   });
 
@@ -44,5 +47,17 @@ describe("workflow templates", () => {
     expect(condition?.edges.some((edge) => edge.branch === "true")).toBe(true);
     expect(condition?.edges.some((edge) => edge.branch === "false")).toBe(true);
     expect(loop?.nodes.some((node) => node.type === "loop")).toBe(true);
+  });
+
+  it("includes practical LINE and family-time workflows", () => {
+    const lineReply = WORKFLOW_TEMPLATES.find((template) => template.id === "line-reply-draft");
+    const dailyBrief = WORKFLOW_TEMPLATES.find((template) => template.id === "small-shop-daily-brief");
+    const familyTriage = WORKFLOW_TEMPLATES.find((template) => template.id === "family-time-auto-triage");
+
+    expect(lineReply?.tags).toContain("line");
+    expect(lineReply?.nodes.some((node) => node.type === "llm")).toBe(true);
+    expect(dailyBrief?.description).toMatch(/owner action plan/i);
+    expect(familyTriage?.edges.some((edge) => edge.branch === "true")).toBe(true);
+    expect(familyTriage?.edges.some((edge) => edge.branch === "false")).toBe(true);
   });
 });

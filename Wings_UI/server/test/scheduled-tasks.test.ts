@@ -185,6 +185,16 @@ describe("scheduled-tasks", () => {
         expect(result.task.kind).toBe("agent");
       }
     });
+
+    it("ships LINE and family-time agent templates", () => {
+      const ids = SCHEDULE_TEMPLATES.map((template) => template.id);
+      expect(ids).toContain("line-inbox-digest-agent");
+      expect(ids).toContain("small-operator-daily-plan-agent");
+      expect(ids).toContain("family-time-handoff-agent");
+
+      const lineTemplate = SCHEDULE_TEMPLATES.find((template) => template.id === "line-inbox-digest-agent");
+      expect(lineTemplate?.task.prompt).toContain("Do not send messages automatically");
+    });
   });
 
   describe("backend cron command helpers", () => {
