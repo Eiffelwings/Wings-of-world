@@ -1,0 +1,49 @@
+Wings Of World
+========
+
+This product includes software from third-party projects. Their licenses
+and copyright notices are reproduced below.
+
+----------------------------------------------------------------------
+Future AGI - Evaluation Catalog (server/features/guardrails/evals.yaml)
+----------------------------------------------------------------------
+
+The YAML evaluation catalog under `server/features/guardrails/evals.yaml`
+is derived from the Future AGI project:
+
+    https://github.com/future-agi/future-agi
+    Copyright (c) Future AGI contributors
+    Licensed under the Apache License, Version 2.0
+
+A copy of the Apache 2.0 license text is available at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+The catalog has been incorporated unmodified for use as LLM-as-judge
+prompts in Wings Of World's guardrails engine. The TypeScript engine that loads
+and executes the catalog (`server/features/guardrails/engine.ts` and
+`server/features/guardrails/runtime.ts`) is original work and is
+licensed under the same terms as the rest of Wings Of World.
+
+----------------------------------------------------------------------
+OpenClaw - Tool patterns and inspiration
+----------------------------------------------------------------------
+
+Several Wings Of World tools were inspired by extensions from the OpenClaw
+project:
+
+    https://github.com/steipete/openclaw
+    Copyright (c) 2025 Peter Steinberger
+    Licensed under the MIT License
+
+Specifically:
+
+  - `server/features/web-fetch.ts`        <- inspired by `extensions/web-readability`
+  - `server/features/document-extract.ts` <- inspired by `extensions/document-extract`
+  - `server/features/tavily-search.ts`    <- inspired by `extensions/tavily`
+
+The Wings Of World implementations are independent rewrites that drop the
+OpenClaw plugin SDK in favour of direct dependencies on
+`@mozilla/readability`, `linkedom`, `pdfjs-dist`, and the Tavily REST
+API. We retain attribution here because the design and tool surface
+are derivative.

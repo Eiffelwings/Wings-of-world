@@ -1,0 +1,44 @@
+import { normalizeLegacyOnboardAuthChoice } from "../commands/auth-choice-legacy.js";
+import type { WingsConfig } from "../config/config.js";
+import { resolveManifestProviderAuthChoice } from "./provider-auth-choices.js";
+
+const PREFERRED_PROVIDER_BY_AUTH_CHOICE: Partial<Record<string, string>> = {
+  chutes: "chutes",
+  "custom-api-key": "custom",
+};
+
+function normalizeLegacyAuthChoice(choice: string): string {
+  return normalizeLegacyOnboardAuthChoice(choice, { env: process.env }) ?? choice;
+}
+
+export async function resolvePreferredProviderForAuthChoice(params: {
+  choice: string;
+  config?: WingsConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+}): Promise<string | undefined> {
+  const choice = normalizeLegacyAuthChoice(params.choice) ?? params.choice;
+  const manifestResolved = resolveManifestProviderAuthChoice(choice, params);
+  if (manifestResolved) {
+    return manifestResolved.providerId;
+  }
+
+  const { resolveProviderPluginChoice, resolvePluginProviders } =
+    await import("./provider-auth-choice.runtime.js");
+  const providers = resolvePluginProviders({
+    config: params.config,
+    workspaceDir: params.workspaceDir,
+    env: params.env,
+    bundledProviderAllowlistCompat: true,
+    bundledProviderVitestCompat: true,
+  });
+  const pluginResolved = resolveProviderPluginChoice({
+    providers,
+    choice,
+  });
+  if (pluginResolved) {
+    return pluginResolved.provider.id;
+  }
+
+  return PREFERRED_PROVIDER_BY_AUTH_CHOICE[choice];
+}

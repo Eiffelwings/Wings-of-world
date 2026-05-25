@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/sglang-provider",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 SGLang provider plugin",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

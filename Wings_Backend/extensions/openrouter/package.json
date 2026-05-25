@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/openrouter-provider",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 OpenRouter provider plugin",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

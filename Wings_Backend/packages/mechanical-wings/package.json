@@ -1,0 +1,17 @@
+{
+  "name": "mechanical-wings",
+  "version": "2026.3.26",
+  "description": "Compatibility shim for the legacy mechanical-wings package name.",
+  "type": "module",
+  "bin": {
+    "mechanical-wings": "./mechanical-wings.mjs"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./cli-entry": "./mechanical-wings.mjs",
+    "./plugin-sdk": "./plugin-sdk.js"
+  },
+  "dependencies": {
+    "wings-of-world-backend": "workspace:*"
+  }
+}

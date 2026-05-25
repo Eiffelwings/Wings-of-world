@@ -1,0 +1,49 @@
+{
+  "name": "@mechanical-wings/zalouser",
+  "version": "2026.3.26",
+  "description": "Wings🪽 Zalo Personal Account plugin via native zca-js integration",
+  "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "0.34.48",
+    "zca-js": "2.1.2"
+  },
+  "devDependencies": {
+    "mechanical-wings": "workspace:*"
+  },
+  "peerDependencies": {
+    "mechanical-wings": ">=2026.3.26"
+  },
+  "peerDependenciesMeta": {
+    "mechanical-wings": {
+      "optional": true
+    }
+  },
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "setupEntry": "./setup-entry.ts",
+    "channel": {
+      "id": "zalouser",
+      "label": "Zalo Personal",
+      "selectionLabel": "Zalo (Personal Account)",
+      "docsPath": "/channels/zalouser",
+      "docsLabel": "zalouser",
+      "blurb": "Zalo personal account via QR code login.",
+      "aliases": [
+        "zlu"
+      ],
+      "order": 85,
+      "quickstartAllowFrom": false
+    },
+    "install": {
+      "npmSpec": "@mechanical-wings/zalouser",
+      "localPath": "extensions/zalouser",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2026.3.26"
+    },
+    "release": {
+      "publishToNpm": true
+    }
+  }
+}

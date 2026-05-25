@@ -1,0 +1,15 @@
+{
+  "name": "@mechanical-wings/microsoft-speech",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 Microsoft speech plugin",
+  "type": "module",
+  "dependencies": {
+    "node-edge-tts": "^1.2.10"
+  },
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

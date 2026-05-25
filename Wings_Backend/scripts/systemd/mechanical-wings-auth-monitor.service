@@ -1,0 +1,14 @@
+[Unit]
+Description=Wings🪽 Auth Expiry Monitor
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/admin/mechanical-wings/scripts/auth-monitor.sh
+# Configure notification channels via environment
+Environment=WARN_HOURS=2
+# Environment=NOTIFY_PHONE=+1234567890
+# Environment=NOTIFY_NTFY=mechanical-wings-alerts
+
+[Install]
+WantedBy=default.target

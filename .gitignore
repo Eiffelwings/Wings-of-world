@@ -1,0 +1,46 @@
+# Dependencies
+**/node_modules/
+**/.pnpm-store/
+**/.agent/
+**/.agents/
+**/.pi/
+
+# Build outputs
+**/dist/
+**/build/
+**/.build/
+**/coverage/
+
+# Runtime data and logs
+**/data/
+**/logs/
+**/.codex-logs/
+**/playwright-report/
+**/test-results/
+**/.playwright-data/
+*.log
+*.pid
+*.pid.lock
+
+# Secrets and local environment
+**/.env
+**/.env.*
+!**/.env.example
+*.db
+*.sqlite
+*.sqlite3
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Release archives and backups
+*.zip
+*.tgz
+*_backup_*/
+*_backup/

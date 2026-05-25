@@ -1,0 +1,12 @@
+{
+  "name": "@mechanical-wings/exa-plugin",
+  "version": "2026.3.26",
+  "private": true,
+  "description": "Wings🪽 Exa plugin",
+  "type": "module",
+  "mechanical-wings": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
