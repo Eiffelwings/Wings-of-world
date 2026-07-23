@@ -886,7 +886,7 @@
     "express": "^5.2.1",
     "file-type": "22.0.0",
     "gaxios": "7.1.4",
-    "hono": "4.12.18",
+    "hono": "4.12.27",
     "ipaddr.js": "^2.3.0",
     "jiti": "^2.6.1",
     "json5": "^2.2.3",
@@ -951,7 +951,7 @@
   "pnpm": {
     "minimumReleaseAge": 2880,
     "overrides": {
-      "hono": "4.12.18",
+      "hono": "4.12.27",
       "@hono/node-server": "1.19.13",
       "fast-xml-parser": "5.7.0",
       "path-to-regexp": "8.4.0",
